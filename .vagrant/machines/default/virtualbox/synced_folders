@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/media/313434A27137E643/Downloads/AdhocTeam-homework/homework-master/provision","disabled":false,"owner":"vagrant","group":"vagrant"}}}
