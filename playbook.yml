@@ -12,7 +12,10 @@
       apt: pkg=runit state=installed update_cache=true
       notify:
         - start runit
-
+        
+  - name: Installing curl
+      apt: pkg=curl state=installed update_cache=true
+      
     - name: Installing unzip
       apt: pkg=unzip state=installed update_cache=true
       
