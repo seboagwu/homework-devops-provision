@@ -1,0 +1,60 @@
+---
+- hosts: localhost
+  become: yes
+  become_user: root
+  tasks:
+    - name: Installing nginx web server
+      apt: pkg=nginx state=installed update_cache=true
+      notify:
+        - start nginx
+    
+    - name: Installing runit
+      apt: pkg=runit state=installed update_cache=true
+      notify:
+        - start runit
+
+    - name: Installing unzip
+      apt: pkg=unzip state=installed update_cache=true
+      
+    - name: Create NGINX SSL folder
+      file: path=/etc/nginx/ssl state=directory owner=www-data group=www-data mode=0775 recurse=yes 
+      
+    - name: Copy NGINX Cert files
+      copy: src=files/self-signed.crt dest=/etc/nginx/ssl mode=0644
+
+    - name: Copy NGINX Cert Key
+      copy: src=files/self-signed.key dest=/etc/nginx/ssl mode=0644
+      
+    - name: Copy NGINX Config
+      copy: src=config/nginx.conf dest=/etc/nginx mode=0644
+      
+    - name: Unzip application archive and copy to /opt/
+      unarchive: src=application.zip dest=/opt/
+    
+    - name: Create /service/run/ for runit
+      file: path=/service/run/ state=directory owner=root group=root mode=0775 recurse=yes
+      
+    - name: Copy application/run to /service/run/
+      copy: src=application/run dest=/service/run/ mode=0644
+        
+    - name: Copy application/server.py to /service/run/
+      copy: src=application/server.py dest=/service/run/ mode=0644 
+    
+    - name: Config run permission
+      command: chmod +x /service/run/run
+
+    - name: Run Runsv
+      command: runsv /service/run/ &
+      ignore_errors: yes
+      
+    - name: Run service /service/run/
+      command: sv -w 20 start run
+      ignore_errors: yes
+
+    - name: Restart NGINX
+      command: systemctl restart nginx.service
+      ignore_errors: yes
+   
+  handlers:
+    - name: start nginx
+      service: name=nginx state=started   
